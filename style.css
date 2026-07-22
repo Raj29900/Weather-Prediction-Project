@@ -1961,7 +1961,7 @@ body.earth-mode .app-shell {
     left: 0;
     width: 400%;
     height: 102%;
-    background-image: url("assets/earth-realistic-texture.png");
+    background-image: url("earth-realistic-texture.png");
     background-repeat: repeat-x;
     background-position: 0 center;
     background-size: 50% 100%;
@@ -2195,7 +2195,7 @@ body.earth-mode .atmosphere {
 /* Real equirectangular world texture. Horizontal texture travel produces
    a globe spinning around its vertical north-south axis. */
 .earth-texture-track {
-    background-image: url("assets/earth-realistic-texture.png") !important;
+    background-image: url("earth-realistic-texture.png") !important;
     background-repeat: repeat-x !important;
     background-position: 0 50% !important;
     background-size: 50% 100% !important;
