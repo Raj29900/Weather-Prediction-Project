@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A responsive worldwide weather prediction dashboard using a detailed real-world map with countries, states, districts, cities, villages, roads, boundaries, 24-hour forecasts and a 7-day outlook.">
+    <title>WeatherCast | Live Rotating Earth Weather Explorer</title>
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://tile.openstreetmap.org">
+    <link rel="preconnect" href="https://api.open-meteo.com">
+    <link rel="preconnect" href="https://nominatim.openstreetmap.org">
+    <link rel="preconnect" href="https://basemaps.cartocdn.com">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="earth-mode">
+
+    <section class="earth-gateway" id="earthGateway" aria-labelledby="earthGatewayTitle">
+        <div class="earth-gateway-glow earth-gateway-glow-one" aria-hidden="true"></div>
+        <div class="earth-gateway-glow earth-gateway-glow-two" aria-hidden="true"></div>
+
+        <div class="earth-gateway-content">
+            <header class="earth-intro-copy">
+                <span class="earth-kicker">LIVE GLOBAL WEATHER EXPLORER</span>
+                <h1 id="earthGatewayTitle">Explore Weather Across the Rotating Earth</h1>
+                <p>Click the Earth to open the Detailed Live Map</p>
+            </header>
+
+            <div class="earth-visual-column">
+                <button class="earth-launch-button" id="enterMapButton" type="button" aria-label="Select the rotating Earth to open the interactive live weather map">
+                    <span class="earth-globe-shell" aria-hidden="true">
+                        <span class="earth-texture-track"></span>
+                        <span class="earth-cloud-layer"></span>
+                        <span class="earth-lighting"></span>
+                    </span>
+                </button>
+            </div>
+
+            <div class="earth-entry-actions">
+               
+                <span class="earth-click-prompt">The Earth rotates automatically · Click to enter</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="atmosphere" aria-hidden="true">
+        <span class="orb orb-one"></span>
+        <span class="orb orb-two"></span>
+        <span class="orb orb-three"></span>
+        <div class="stars" id="stars"></div>
+    </div>
+
+    <main class="app-shell" id="weatherApplication" inert aria-hidden="true">
+        <header class="topbar">
+            <a class="brand" href="#" aria-label="AeroCast home">
+                <span class="brand-mark" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <span class="brand-copy">
+                    <strong>WEATHERCAST</strong>
+                    <small>GLOBAL WEATHER INTELLIGENCE</small>
+                </span>
+            </a>
+
+            <div class="topbar-center">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span>LIVE FORECAST SYSTEM</span>
+            </div>
+
+            <div class="clock-panel">
+                <span id="utcClock">--:--:-- UTC</span>
+                <small id="utcDate">Loading date…</small>
+            </div>
+        </header>
+
+        <section class="dashboard">
+            <aside class="control-panel glass-panel" aria-label="Weather controls">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">LOCATION TERMINAL</span>
+                        <h1>Weather Command</h1>
+                    </div>
+                    <button class="icon-button" id="refreshButton" type="button" title="Refresh weather" aria-label="Refresh weather">
+                        ↻
+                    </button>
+                </div>
+
+                <form class="search-box" id="searchForm">
+                    <label class="sr-only" for="citySearch">Search for a city</label>
+                    <input
+                        id="citySearch"
+                        type="search"
+                        placeholder="Search country, state, district, city or village"
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit">Search</button>
+                </form>
+
+                <div class="search-results" id="searchResults" aria-live="polite"></div>
+
+                <button class="location-button" id="locationButton" type="button">
+                    <span aria-hidden="true">⌖</span>
+                    Use my current location
+                </button>
+
+                <section class="current-card" id="currentCard" aria-live="polite">
+                    <div class="current-topline">
+                        <div>
+                            <span class="eyebrow">SELECTED LOCATION</span>
+                            <h2 id="locationName">Chennai, India</h2>
+                            <p id="locationMeta">13.08°N, 80.27°E</p>
+                            <p class="location-hierarchy" id="locationHierarchy">Chennai · Chennai District · Tamil Nadu · India</p>
+                        </div>
+                        <span class="weather-icon" id="currentIcon" aria-hidden="true">☀️</span>
+                    </div>
+
+                    <div class="temperature-row">
+                        <strong id="currentTemperature">--°</strong>
+                        <div>
+                            <span id="currentCondition">Loading weather…</span>
+                            <small id="currentUpdated">Waiting for forecast</small>
+                        </div>
+                    </div>
+
+                    <div class="metric-grid">
+                        <article>
+                            <span>Feels like</span>
+                            <strong id="feelsLike">--°</strong>
+                        </article>
+                        <article>
+                            <span>Humidity</span>
+                            <strong id="humidity">--%</strong>
+                        </article>
+                        <article>
+                            <span>Wind</span>
+                            <strong id="windSpeed">-- km/h</strong>
+                        </article>
+                        <article>
+                            <span>Pressure</span>
+                            <strong id="pressure">-- hPa</strong>
+                        </article>
+                        <article>
+                            <span>Cloud cover</span>
+                            <strong id="cloudCover">--%</strong>
+                        </article>
+                        <article>
+                            <span>Precipitation</span>
+                            <strong id="precipitation">-- mm</strong>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="layer-section">
+                    <div class="section-title-row">
+                        <div>
+                            <span class="eyebrow">WORLD PREDICTION LAYER</span>
+                            <h2>Global conditions</h2>
+                        </div>
+                        <span class="utc-badge">UTC</span>
+                    </div>
+
+                    <div class="layer-buttons" role="group" aria-label="Map weather layer">
+                        <button class="layer-button active" type="button" data-layer="heat">
+                            <span class="layer-symbol heat-symbol"></span>
+                            Heat
+                        </button>
+                        <button class="layer-button" type="button" data-layer="rain">
+                            <span class="layer-symbol rain-symbol"></span>
+                            Rain
+                        </button>
+                        <button class="layer-button" type="button" data-layer="snow">
+                            <span class="layer-symbol snow-symbol"></span>
+                            Snow
+                        </button>
+                        <button class="layer-button" type="button" data-layer="spring">
+                            <span class="layer-symbol spring-symbol"></span>
+                            Spring
+                        </button>
+                    </div>
+
+                    <label class="forecast-slider-label" for="forecastHour">
+                        <span>Forecast time</span>
+                        <strong id="forecastHourLabel">Now</strong>
+                    </label>
+                    <input
+                        class="forecast-slider"
+                        id="forecastHour"
+                        type="range"
+                        min="0"
+                        max="24"
+                        step="1"
+                        value="0"
+                    >
+
+                    <div class="legend" id="mapLegend" aria-label="Weather map legend"></div>
+                    <p class="layer-note">
+                        The smooth colored surface is an interpolated global model forecast. Click the map for a precise local forecast.
+                    </p>
+                </section>
+            </aside>
+
+            <section class="map-column">
+                <div class="map-frame glass-panel">
+                    <div class="map-toolbar">
+                        <div>
+                            <span class="eyebrow">DETAILED REAL-WORLD WEATHER MAP</span>
+                            <strong id="mapModeTitle">Temperature prediction</strong>
+                            <small class="map-detail-note">Zoom in to reveal countries, states, districts, villages, roads and local places.</small>
+                        </div>
+                        <div class="map-toolbar-right">
+                            <div class="map-status">
+                                <span class="pulse-dot" aria-hidden="true"></span>
+                                <span id="mapStatus">Connecting to map services…</span>
+                            </div>
+                            <div class="map-toolbar-actions" aria-label="Map actions">
+                                <button id="worldViewButton" type="button" title="Return to the realistic Earth view">🌍 Earth view</button>
+                                <button id="weatherToggleButton" type="button" class="active" aria-pressed="true" title="Show or hide the weather surface">☁ Weather on</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="weatherMap" aria-label="Interactive global weather map"></div>
+                    <div class="map-service-notice" id="mapServiceNotice" hidden>
+                        The primary map tiles are unavailable. A backup map source is being used.
+                    </div>
+
+                    <div class="map-corner map-corner-tl" aria-hidden="true"></div>
+                    <div class="map-corner map-corner-tr" aria-hidden="true"></div>
+                    <div class="map-corner map-corner-bl" aria-hidden="true"></div>
+                    <div class="map-corner map-corner-br" aria-hidden="true"></div>
+
+                    <div class="coordinate-readout" id="coordinateReadout">
+                        Move over the map to inspect coordinates
+                    </div>
+
+                    <div class="place-readout" id="placeReadout">
+                        Click any place to identify its village, district, state and country
+                    </div>
+
+                    <div class="loading-overlay show" id="mapLoading">
+                        <div class="radar-loader" aria-hidden="true">
+                            <span></span>
+                        </div>
+                        <strong>Loading worldwide prediction surface</strong>
+                        <small>Interpolating live global weather model data…</small>
+                    </div>
+                </div>
+
+                <section class="forecast-panel glass-panel">
+                    <div class="forecast-heading">
+                        <div>
+                            <span class="eyebrow">LOCAL FORECAST</span>
+                            <h2>Next 24 hours</h2>
+                        </div>
+                        <div class="forecast-summary" id="forecastSummary">Select a location</div>
+                    </div>
+
+                    <div class="chart-wrap">
+                        <svg id="hourlyChart" viewBox="0 0 1000 270" role="img" aria-label="Hourly temperature and rain probability chart"></svg>
+                    </div>
+
+                    <div class="hourly-scroller" id="hourlyForecast"></div>
+                </section>
+
+                <section class="daily-panel glass-panel">
+                    <div class="forecast-heading">
+                        <div>
+                            <span class="eyebrow">EXTENDED OUTLOOK</span>
+                            <h2>7-day prediction</h2>
+                        </div>
+                    </div>
+                    <div class="daily-grid" id="dailyForecast"></div>
+                </section>
+            </section>
+        </section>
+
+        <footer class="footer">
+            <span>Weather data: Open-Meteo</span>
+            <span>Map data and place search: OpenStreetMap</span>
+            <span>Base maps: OpenStreetMap, CARTO, Esri and OpenTopoMap</span>
+            <span id="autoRefreshText">Auto-refresh every 30 minutes</span>
+        </footer>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+
+    <!-- Leaflet loads first; the application starts immediately after it. -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
